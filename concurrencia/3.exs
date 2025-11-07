@@ -9,28 +9,31 @@ end
 
 defmodule Main do
   def main do
-    p1 = Orden.crear("ab12", 12, 15500)
-    p2 = Orden.crear("cd45", 20, 20000)
-    p3 = Orden.crear("wq78", 30, 45000)
-    p4 = Orden.crear("we96", 5, 35000)
-    p5 = Orden.crear("ko65", 18, 16000)
+    p1 = Orden.crear("ab12", "hamburguesa", 1500)
+    p2 = Orden.crear("cd45", "perro", 2000)
+    p3 = Orden.crear("wq78", "gaseosa", 4500)
+    p4 = Orden.crear("we96", "jugo", 3500)
+    p5 = Orden.crear("ko65", "ensalada", 1600)
     lista = [p1,p2,p3,p4,p5]
-    IO.inspect(calcular_iva_sencuencial(lista))
-    IO.puts(Benchmark.determinar_tiempo_ejecucion({Main, :calcular_iva_sencuencial, [lista]}))
-    IO.inspect(calcular_iva_concurrente(lista))
-    IO.puts(Benchmark.determinar_tiempo_ejecucion({Main, :calcular_iva_concurrente, [lista]}))
+    IO.puts("Secuencial: #{Benchmark.determinar_tiempo_ejecucion({Main, :ticket_secuencial, [lista]})} microsegundos")
+    IO.puts("Concurrente: #{Benchmark.determinar_tiempo_ejecucion({Main, :ticket_concurrencia, [lista]})} microsegundos")
 
   end
 
   def ticket_secuencial(lista) do
-    Enum.each(lista, fn o -> timer.sleep(o.prep_ms) end)
+    Enum.each(lista, fn o ->
+      :timer.sleep(o.prep_ms)
+      IO.puts("Preparado: id #{o.id}, #{o.item}")
+    end)
   end
 
 
-  def calcular_iva_concurrente(lista) do
+  def ticket_concurrencia(lista) do
     lista
-    |> Enum.map(fn p ->
-      Task.async(fn -> {p.nombre, p.precio_sin_iva * (1 + p.iva)} end)
+    |> Enum.map(fn o ->
+      Task.async(fn -> :timer.sleep(o.prep_ms)
+      IO.puts("Preparado: id #{o.id}, #{o.item}")
+    end)
     end)
     |> Enum.map(&Task.await(&1, 100_000))
 
