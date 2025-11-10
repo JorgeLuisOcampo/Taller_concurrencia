@@ -1,5 +1,5 @@
-elixir --name cliente@10.104.223.238 .\nodo-cliente.exs  
-elixir --name servidor@10.104.223.238 .\nodo-servidor.exs
+elixir --name cliente@192.168.1.2 .\nodo-cliente.exs  
+elixir --name servidor@192.168.1.25 .\nodo-servidor.exs
 
 IP del negro : 192.168.1.25
-IP del jorge : 192.168.1.19
+IP del jorge : 192.168.1.2
