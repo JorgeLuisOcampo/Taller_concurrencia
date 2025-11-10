@@ -6,7 +6,7 @@ end
 
 
 defmodule ClienteIVA do
-  @nodo_cliente :"cliente@192.168.1.19"
+  @nodo_cliente :"cliente@192.168.1.2"
   @nodo_servidor :"servidor@192.168.1.25"
   @servicio :servicio_iva
 
