@@ -19,11 +19,9 @@ defmodule ClienteIVA do
 
       productos = crear_productos()
 
-      # cálculo secuencial
       IO.puts("\n----- Cálculo Secuencial -----")
       IO.inspect(sencuencial(productos))
 
-      # cálculo concurrente
       IO.puts("\n----- Cálculo Concurrente -----")
       IO.inspect(concurrente(productos))
 
@@ -42,9 +40,6 @@ defmodule ClienteIVA do
     ]
   end
 
-  # --------------------------
-  # SOLICITUD SECUENCIAL
-  # --------------------------
   defp sencuencial(lista) do
     send({@servicio, @nodo_servidor}, {self(), {:sencuencial, lista}})
 
@@ -56,9 +51,6 @@ defmodule ClienteIVA do
     end
   end
 
-  # --------------------------
-  # SOLICITUD CONCURRENTE
-  # --------------------------
   defp concurrente(lista) do
     send({@servicio, @nodo_servidor}, {self(), {:concurrente, lista}})
 

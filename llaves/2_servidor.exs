@@ -11,7 +11,6 @@ defmodule ServidorIVA do
     loop()
   end
 
-  # Bucle principal del servidor
   defp loop do
     receive do
       {cliente, {:secuencial, lista}} ->
@@ -30,19 +29,13 @@ defmodule ServidorIVA do
     end
   end
 
-  # -------------------------
-  #  CÁLCULO IVA SECUENCIAL
-  # -------------------------
   def secuencial(lista) do
     lista
-    |> Enum.map( fn p ->
+    |> Enum.each( fn p ->
       precio_final(p)
     end)
   end
 
-  # -------------------------
-  #  CÁLCULO IVA CONCURRENTE
-  # -------------------------
   def concurrente(lista) do
     lista
     |> Enum.map(fn p ->
