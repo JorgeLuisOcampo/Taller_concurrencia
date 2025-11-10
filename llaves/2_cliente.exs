@@ -1,6 +1,6 @@
 defmodule ClienteIVA do
-  @nodo_cliente :"cliente@IP_CLIENTE"
-  @nodo_servidor :"servidor@IP_SERVIDOR"
+  @nodo_cliente :"cliente@192.168.1.19"
+  @nodo_servidor :"servidor@192.168.1.25"
   @servicio :servicio_iva
 
   def main() do
