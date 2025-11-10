@@ -48,6 +48,7 @@ defmodule ServidorIVA do
   end
 
   def precio_final(p) do
+    :timer.sleep(5..10)
     precio_con_iva = p.precio_sin_iva * 1 + p.iva
     precio_final = precio_con_iva * p.stock
     {p.nombre, precio_final}
