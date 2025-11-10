@@ -20,7 +20,7 @@ defmodule ClienteIVA do
       productos = crear_productos()
 
       IO.puts("\n----- Cálculo Secuencial -----")
-      IO.inspect(sencuencial(productos))
+      IO.inspect(secuencial(productos))
 
       IO.puts("\n----- Cálculo Concurrente -----")
       IO.inspect(concurrente(productos))
