@@ -40,8 +40,8 @@ defmodule ClienteIVA do
     ]
   end
 
-  defp sencuencial(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {:sencuencial, lista}})
+  defp secuencial(lista) do
+    send({@servicio, @nodo_servidor}, {self(), {:secuencial, lista}})
 
     receive do
       {:resultado, datos, tiempo} ->
