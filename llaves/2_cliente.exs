@@ -6,8 +6,8 @@ end
 
 
 defmodule ClienteIVA do
-  @nodo_cliente :"cliente@IP_CLIENTE"
-  @nodo_servidor :"servidor@IP_SERVIDOR"
+  @nodo_cliente :"cliente@192.168.1.19"
+  @nodo_servidor :"servidor@192.168.1.25"
   @servicio :servicio_iva
 
   def main() do
@@ -19,11 +19,11 @@ defmodule ClienteIVA do
 
       productos = crear_productos()
 
-      # ✅ cálculo secuencial
+      # cálculo secuencial
       IO.puts("\n----- Cálculo Secuencial -----")
       IO.inspect(sencuencial(productos))
 
-      # ✅ cálculo concurrente
+      # cálculo concurrente
       IO.puts("\n----- Cálculo Concurrente -----")
       IO.inspect(concurrente(productos))
 
