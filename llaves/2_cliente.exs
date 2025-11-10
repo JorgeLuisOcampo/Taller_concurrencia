@@ -12,11 +12,11 @@ defmodule ClienteIVA do
 
       productos = crear_productos()
 
-      # ✅ cálculo secuencial
+      # cálculo secuencial
       IO.puts("\n----- Cálculo Secuencial -----")
       IO.inspect(solicitar_sencuencial(productos))
 
-      # ✅ cálculo concurrente
+      # cálculo concurrente
       IO.puts("\n----- Cálculo Concurrente -----")
       IO.inspect(solicitar_concurrente(productos))
 
