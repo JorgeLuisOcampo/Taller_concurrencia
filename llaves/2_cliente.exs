@@ -1,9 +1,7 @@
 defmodule Producto do
   defstruct nombre: "", stock: 0, precio_sin_iva: 0, iva: 0.0
-  def crear(n,s,p,i), do: %Producto{nombre: n, stock: s, precio_sin_iva: p, iva: i}
-
+  def crear(n, s, p, i), do: %Producto{nombre: n, stock: s, precio_sin_iva: p, iva: i}
 end
-
 
 defmodule ClienteIVA do
   @nodo_cliente :"cliente@192.168.1.2"
@@ -20,23 +18,32 @@ defmodule ClienteIVA do
       productos = crear_productos()
 
       IO.puts("\n----- Cálculo Secuencial -----")
-      IO.inspect(secuencial(productos))
+      resultado_sec = secuencial(productos)
+      IO.inspect(resultado_sec)
 
       IO.puts("\n----- Cálculo Concurrente -----")
-      IO.inspect(concurrente(productos))
+      resultado_con = concurrente(productos)
+      IO.inspect(resultado_con)
 
+      # Calcular SpeedUp
+      if resultado_sec[:tiempo] != 0 and resultado_con[:tiempo] != 0 do
+        speedup = Benchmark.calcular_speedup(resultado_con[:tiempo], resultado_sec[:tiempo])
+        IO.puts("\nSpeed up es #{Float.round(speedup, 2)}x más rápido.")
+      else
+        IO.puts("\nNo se pudo calcular el speedup (tiempos inválidos).")
+      end
     else
-      IO.puts("No se pudo conectar")
+      IO.puts("No se pudo conectar con el servidor.")
     end
   end
 
   defp crear_productos do
     [
-      Producto.crear("camisa", 12, 15500, 0.19),
-      Producto.crear("pantalon", 20, 20000, 0.19),
-      Producto.crear("zapato", 30, 45000, 0.19),
-      Producto.crear("camiseta", 5, 35000, 0.19),
-      Producto.crear("medias", 18, 16000, 0.19)
+      Producto.crear("camisa", 12, 15_500, 0.19),
+      Producto.crear("pantalon", 20, 20_000, 0.19),
+      Producto.crear("zapato", 30, 45_000, 0.19),
+      Producto.crear("camiseta", 5, 35_000, 0.19),
+      Producto.crear("medias", 18, 16_000, 0.19)
     ]
   end
 
@@ -47,7 +54,7 @@ defmodule ClienteIVA do
       {:resultado, datos, tiempo} ->
         %{resultado: datos, tiempo: tiempo}
     after
-      100000 -> {:error, :timeout}
+      100_000 -> %{resultado: [], tiempo: 0}
     end
   end
 
@@ -58,7 +65,7 @@ defmodule ClienteIVA do
       {:resultado, datos, tiempo} ->
         %{resultado: datos, tiempo: tiempo}
     after
-      100000 -> {:error, :timeout}
+      100_000 -> %{resultado: [], tiempo: 0}
     end
   end
 end
