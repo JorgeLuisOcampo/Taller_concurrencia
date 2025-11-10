@@ -31,7 +31,7 @@ defmodule ServidorIVA do
 
   def secuencial(lista) do
     lista
-    |> Enum.each( fn p ->
+    |> Enum.map( fn p ->
       precio_final(p)
     end)
   end
