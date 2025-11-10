@@ -1,82 +1,90 @@
 defmodule Comentario do
   defstruct id: "", texto: ""
+  def crear(id, t), do: %Comentario{id: id, texto: t}
 
-  def crear(id, texto) do
-    %Comentario{id: id, texto: texto}
-  end
 end
 
 defmodule Moderador do
-  @palabras_prohibidas ["malo", "odio", "tonto", "estupido", "grosero"]
-
-  # Evalúa un comentario y determina si es aprobado o rechazado
-  def moderar(comentario) do
+  @prohibidas ["maldito", "mierda", "pinche", "porquería", "basura"]
+  @links ["https//:", "http://", "https://", "www.", ".com", "ftp://"]
+  def moderar(c) do
+    errores = []
+    errores =
+      errores
+      |> prohibidas(c.texto)
+      |> longitud(c.texto)
+      |> links(c.texto)
     :timer.sleep(Enum.random(5..12))
-
-    if contiene_prohibidas?(comentario.texto) or contiene_link?(comentario.texto) or demasiado_largo?(comentario.texto) do
-      # Salida como tupla
-      IO.inspect({comentario.id, :rechazado})
-      {comentario.id, :rechazado}
+    if errores == [] do
+      {c.id, :aprobado}
     else
-      IO.inspect({comentario.id, :aprobado})
-      {comentario.id, :aprobado}
+      {c.id, :rechazado}
     end
   end
 
-  # Verifica si el texto contiene palabras prohibidas
-  defp contiene_prohibidas?(texto) do
-    texto_down = String.downcase(texto)
-    Enum.any?(@palabras_prohibidas, fn palabra -> String.contains?(texto_down, palabra) end)
+  def prohibidas(errores, texto) do
+    if String.contains?(texto, @prohibidas), do: errores ++ ["palabras prohiubidas"], else: errores
   end
-
-  # Verifica si hay un enlace en el texto
-  defp contiene_link?(texto) do
-    String.contains?(texto, ["http", "www", ".com"])
+  def longitud(errores, texto) do
+    if String.length(texto) <= 50, do: errores, else: errores ++ ["longitud maxima excedida"]
   end
-
-  # Verifica si el texto supera cierta longitud
-  defp demasiado_largo?(texto) do
-    String.length(texto) > 120
+  def links(errores, texto) do
+    if String.contains?(texto, @links), do: errores ++ ["comentario contiene links"], else: errores
   end
 end
 
 defmodule Main do
   def main do
-    # Comentarios de ejemplo
-    c1 = Comentario.crear("A1", "Excelente servicio, muy recomendable.")
-    c2 = Comentario.crear("B2", "Este producto es malo y tonto.")
-    c3 = Comentario.crear("C3", "Visita mi página en http://spam.com para más info.")
-    c4 = Comentario.crear("D4", "Buen precio y atención rápida.")
-    c5 = Comentario.crear("E5", String.duplicate("Muy bueno! ", 20)) # largo
+    c1 = Comentario.crear("jk12", "este maldito pc es muy lento")
+    c2 = Comentario.crear("tr34", "tengo hambre y no contestan el telefono en la pizzeria y dominos no esta abierto y no se de donde mas pedir comida por favor sugerencias")
+    c3 = Comentario.crear("tr45", "Todo esta muy bien")
+    c4 = Comentario.crear("ngr2", "ingresen a este enlace https//:www.google.com")
+    c5 = Comentario.crear("ab56", "este servicio de mierda nunca funciona correctamente")
+    c6 = Comentario.crear("cd78", "Estoy muy contento con la compra que realicé, el producto llegó en perfecto estado y antes de lo esperado, la atención al cliente fue excelente y definitivamente volveré a comprar aquí nuevamente")
+    c7 = Comentario.crear("ef90", "Visiten mi sitio web http://mi-pagina-personal.com para más información")
+    c8 = Comentario.crear("gh12", "Excelente servicio, muy recomendado")
+    c9 = Comentario.crear("ij34", "pinche aplicación no sirve para nada, siempre se traba")
+    c10 = Comentario.crear("kl56", "Necesito ayuda urgente con mi pedido porque hoy es el cumpleaños de mi hijo y prometí que llegaría a tiempo pero todavía no veo el seguimiento y no sé dónde está el paquete por favor ayúdenme lo antes posible")
+    c11 = Comentario.crear("mn78", "Descarga gratis desde https://mega.nz/archivos123")
+    c12 = Comentario.crear("op90", "Buen producto, cumple con lo esperado")
+    c13 = Comentario.crear("qr12", "que porquería de aplicación, no vale la pena")
+    c14 = Comentario.crear("st34", "La entrega fue rápida y el producto de buena calidad, estoy satisfecho con la compra y probablemente repita la experiencia en el futuro cercano con otros artículos que necesito para mi hogar")
+    c15 = Comentario.crear("uv56", "Regístrense en www.ofertas-gratis.com para ganar premios")
+    c16 = Comentario.crear("wx78", "Muy buena atención al cliente")
+    c17 = Comentario.crear("yz90", "esta basura de software no funciona nunca")
+    c18 = Comentario.crear("ab01", "Llevo esperando más de dos horas y todavía no resuelven mi problema, necesito esto para mi trabajo y cada minuto que pasa es tiempo perdido y dinero que se va, por favor alguien que me ayude inmediatamente")
+    c19 = Comentario.crear("cd23", "Checa este link: ftp://servidor-seguro.com/archivos")
+    c20 = Comentario.crear("ef45", "Todo perfecto, gracias por el servicio")
 
-    lista = [c1, c2, c3, c4, c5]
+    comentarios = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10,
+                  c11, c12, c13, c14, c15, c16, c17, c18, c19, c20]
 
-    # Medición de tiempos
-    tiempo_sec = Benchmark.determinar_tiempo_ejecucion({Main, :moderar_secuencial, [lista]})
-    tiempo_conc = Benchmark.determinar_tiempo_ejecucion({Main, :moderar_concurrente, [lista]})
+    t_sec = Benchmark.determinar_tiempo_ejecucion({Main, :secuencial, [comentarios]})
+    t_con = Benchmark.determinar_tiempo_ejecucion({Main, :concurrente, [comentarios]})
+    IO.puts("\nSecuencial: #{t_sec} microsegundos")
+    IO.puts("Concurrente: #{t_con} microsegundos")
+    sp_up = Benchmark.calcular_speedup(t_con, t_sec) |> Float.round(2)
+    IO.puts("Speed up es #{sp_up}x mas rapido")
 
-    IO.puts("\nSecuencial: #{tiempo_sec} microsegundos")
-    IO.puts("Concurrente: #{tiempo_conc} microsegundos")
-
-    speedup = Benchmark.calcular_speedup(tiempo_conc, tiempo_sec) |> Float.round(2)
-    IO.puts("Speedup: #{speedup}x más rápido\n")
   end
 
-  # Versión secuencial
-  def moderar_secuencial(lista) do
-    Enum.each(lista, fn c ->
+  def secuencial(lista) do
+    lista
+    |> Enum.each(fn c ->
       Moderador.moderar(c)
     end)
   end
 
-  # Versión concurrente
-  def moderar_concurrente(lista) do
+  def concurrente(lista) do
     lista
     |> Enum.map(fn c ->
-      Task.async(fn -> Moderador.moderar(c) end)
+      Task.async(fn ->
+        Moderador.moderar(c)
+      end)
     end)
-    |> Enum.each(&Task.await(&1, 100_000))
+    |> Enum.map(&Task.await(&1, 10000))
   end
+
 end
 
 Main.main()

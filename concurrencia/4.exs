@@ -1,29 +1,24 @@
 defmodule Review do
   defstruct id: "", texto: ""
-
-  def crear(id, texto) do
-    %Review{id: id, texto: texto}
-  end
+  def crear(id, texto), do: %Review{id: id, texto: texto}
 end
 
 defmodule Limpieza do
   @stopwords ["el", "la", "los", "las", "de", "del", "un", "una", "unos", "unas",
-               "y", "o", "en", "es", "por", "para", "con", "a", "al", "se", "su"]
-
-  def limpiar(review) do
+              "y", "o", "en", "es", "por", "para", "con", "a", "al", "se", "su"]
+  def limpiar(r) do
     texto_limpio =
-      review.texto
+      r.texto
       |> String.downcase()
-      |> quitar_tildes()
-      |> quitar_signos()
-      |> quitar_stopwords()
-
+      |> no_tildes()
+      |> no_stopword()
     :timer.sleep(Enum.random(5..15))
-    {review.id, texto_limpio}
+    IO.inspect({r.id , texto_limpio})
+
   end
 
-  defp quitar_tildes(texto) do
-    texto
+  def no_tildes(t) do
+    t
     |> String.replace("á", "a")
     |> String.replace("é", "e")
     |> String.replace("í", "i")
@@ -31,58 +26,51 @@ defmodule Limpieza do
     |> String.replace("ú", "u")
   end
 
-  defp quitar_signos(texto) do
-    texto
-    |> String.replace(~r/[¡!¿?,.;:()"]/u, "")
-  end
-
-  defp quitar_stopwords(texto) do
-    texto
+  def no_stopword(t) do
+    t
     |> String.split()
     |> Enum.reject(&(&1 in @stopwords))
     |> Enum.join(" ")
   end
+
 end
 
 defmodule Main do
   def main do
-    r1 = Review.crear("a1", "¡La película fue ÉPICA, me encantó cada escena!")
+    r1 = Review.crear("a1", "La película fue ÉPICA, me encantó cada escena")
     r2 = Review.crear("b2", "No me gustó la actuación del protagonista.")
     r3 = Review.crear("c3", "Excelente historia, pero un poco larga en algunas partes.")
     r4 = Review.crear("d4", "La música y los efectos sonoros fueron geniales.")
     r5 = Review.crear("e5", "Una obra maestra del cine moderno, sin duda.")
 
-    lista = [r1, r2, r3, r4, r5]
+    resenas = [r1, r2, r3, r4, r5]
 
-    tiempo_sec = Benchmark.determinar_tiempo_ejecucion({Main, :limpieza_secuencial, [lista]})
-    tiempo_conc = Benchmark.determinar_tiempo_ejecucion({Main, :limpieza_concurrente, [lista]})
+    t_sec = Benchmark.determinar_tiempo_ejecucion({Main, :secuencial, [resenas]})
+    t_conc = Benchmark.determinar_tiempo_ejecucion({Main, :concurrente, [resenas]})
+    IO.puts("\nTiempo secuencial: #{t_sec} microsegundos.")
+    IO.puts("Tiempo concurrente: #{t_conc} microsegundos.")
+    speed_up = Benchmark.calcular_speedup(t_conc, t_sec) |> Float.round(2)
+    IO.puts("Speed es #{speed_up}x mas rapido.")
 
-    IO.puts("\nSecuencial: #{tiempo_sec} microsegundos")
-    IO.puts("Concurrente: #{tiempo_conc} microsegundos")
-
-    speedup = Benchmark.calcular_speedup(tiempo_conc, tiempo_sec) |> Float.round(2)
-    IO.puts("Speedup: #{speedup}x más rápido\n")
   end
 
-  # Versión secuencial con salida en tuplas
-  def limpieza_secuencial(lista) do
-    Enum.each(lista, fn r ->
-      resultado = Limpieza.limpiar(r)
-      IO.inspect(resultado)
+  def secuencial(lista) do
+    lista
+    |> Enum.each(fn r ->
+      Limpieza.limpiar(r)
     end)
   end
 
-  # Versión concurrente con salida en tuplas
-  def limpieza_concurrente(lista) do
+  def concurrente(lista) do
     lista
     |> Enum.map(fn r ->
       Task.async(fn ->
-        resultado = Limpieza.limpiar(r)
-        IO.inspect(resultado)
+        Limpieza.limpiar(r)
       end)
     end)
-    |> Enum.each(&Task.await(&1, 100_000))
+    |> Enum.map(&Task.await(&1, 10000))
   end
+
 end
 
 Main.main()

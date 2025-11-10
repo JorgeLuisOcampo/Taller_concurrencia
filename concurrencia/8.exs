@@ -1,70 +1,58 @@
 defmodule Tarea do
   defstruct nombre: ""
+  def crear(n), do: %Tarea{nombre: n}
 
-  def crear(nombre) do
-    %Tarea{nombre: nombre}
-  end
 end
 
-defmodule Backoffice do
-  # Ejecuta una tarea según su tipo y simula el tiempo de ejecución
-  def ejecutar(tarea) do
-    tiempo = tiempo_por_tarea(tarea.nombre)
-    :timer.sleep(tiempo)
-
-    IO.puts("OK tarea #{tarea.nombre} (#{tiempo} ms)")
-    {tarea.nombre, tiempo}
-  end
-
-  defp tiempo_por_tarea(nombre) do
-    case nombre do
-      :reindex -> 80
-      :purge_cache -> 100
-      :build_sitemap -> 60
-      :backup -> 120
-      :analyze_logs -> 90
-      _ -> 70
+defmodule Mantenimiento do
+  def ejecutar(t) do
+    case t.nombre do
+      :reindex -> :timer.sleep(200)
+      :purge_cache -> :timer.sleep(400)
+      :build_sitemap -> :timer.sleep(600)
+      :backup -> :timer.sleep(500)
+      :analyze_logs -> :timer.sleep(600)
     end
+    IO.puts("Ok tarea #{t.nombre}")
   end
+
 end
 
 defmodule Main do
   def main do
-    # Lista de tareas de backoffice
     t1 = Tarea.crear(:reindex)
     t2 = Tarea.crear(:purge_cache)
     t3 = Tarea.crear(:build_sitemap)
     t4 = Tarea.crear(:backup)
     t5 = Tarea.crear(:analyze_logs)
+    tareas = [t1, t2, t3, t4, t5]
 
-    lista = [t1, t2, t3, t4, t5]
+    t_sec = Benchmark.determinar_tiempo_ejecucion({Main, :secuencial, [tareas]})
+    t_con = Benchmark.determinar_tiempo_ejecucion({Main, :concurrente, [tareas]})
+    IO.puts("\nSecuencial: #{t_sec} microsegundos.")
+    IO.puts("Concurrente: #{t_con} microsegundos.")
+    sp_up = Benchmark.calcular_speedup(t_con, t_sec) |> Float.round(2)
+    IO.puts("Speed up es #{sp_up}x mas rapido.")
 
-    # Medición de tiempos
-    tiempo_sec = Benchmark.determinar_tiempo_ejecucion({Main, :tareas_secuenciales, [lista]})
-    tiempo_conc = Benchmark.determinar_tiempo_ejecucion({Main, :tareas_concurrentes, [lista]})
-
-    IO.puts("\nSecuencial: #{tiempo_sec} microsegundos")
-    IO.puts("Concurrente: #{tiempo_conc} microsegundos")
-
-    speedup = Benchmark.calcular_speedup(tiempo_conc, tiempo_sec) |> Float.round(2)
-    IO.puts("Speedup: #{speedup}x más rápido\n")
   end
 
-  # Versión secuencial
-  def tareas_secuenciales(lista) do
-    Enum.each(lista, fn t ->
-      Backoffice.ejecutar(t)
-    end)
-  end
-
-  # Versión concurrente
-  def tareas_concurrentes(lista) do
+  def secuencial(lista) do
     lista
-    |> Enum.map(fn t ->
-      Task.async(fn -> Backoffice.ejecutar(t) end)
+    |> Enum.each(fn t ->
+      Mantenimiento.ejecutar(t)
     end)
-    |> Enum.each(&Task.await(&1, 100_000))
   end
+
+  def concurrente(lista) do
+    lista
+    |> Enum.map(fn t->
+      Task.async(fn ->
+        Mantenimiento.ejecutar(t)
+      end)
+    end)
+    |> Enum.map(&Task.await(&1, 10000))
+  end
+
 end
 
 Main.main()

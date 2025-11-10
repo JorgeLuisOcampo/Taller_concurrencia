@@ -1,85 +1,76 @@
-defmodule Usuario do
+defmodule User do
   defstruct email: "", edad: 0, nombre: ""
+  def crear(em,edad,name), do: %User{email: em, edad: edad, nombre: name}
 
-  def crear(email, edad, nombre) do
-    %Usuario{email: email, edad: edad, nombre: nombre}
-  end
 end
 
 defmodule Validador do
-  # Función principal: valida un usuario y retorna su resultado
-  def validar(usuario) do
-    errores = []
+  def validar(u) do
+    lista_errores = []
 
-    errores =
-      errores
-      |> validar_correo(usuario.email)
-      |> validar_edad(usuario.edad)
-      |> validar_nombre(usuario.nombre)
+    lista_errores =
+      lista_errores
+      |> validar_email(u.email)
+      |> validar_edad(u.edad)
+      |> validar_nombre(u.nombre)
 
-    :timer.sleep(Enum.random(3..10))  # Simula tiempo de validación
+    :timer.sleep(Enum.random(3..10))
 
-    if errores == [] do
-      {usuario.email, :ok}
+    if lista_errores == [] do
+      IO.inspect({u.email, :ok})
     else
-      {usuario.email, {:error, errores}}
+      IO.inspect({u.email, {:error, lista_errores}})
     end
   end
 
-  defp validar_correo(errores, email) do
-    if String.contains?(email, "@"), do: errores, else: errores ++ ["Correo inválido"]
+  def validar_email(lista_errores, email) do
+    if String.contains?(email, "@"), do: lista_errores, else: lista_errores ++ ["correo no valido"]
   end
-
-  defp validar_edad(errores, edad) do
-    if edad >= 0, do: errores, else: errores ++ ["Edad negativa"]
+  def validar_edad(lista_errores, edad) do
+    if edad >= 0, do: lista_errores, else: lista_errores ++ ["edad no valida"]
   end
-
-  defp validar_nombre(errores, nombre) do
-    if String.trim(nombre) != "", do: errores, else: errores ++ ["Nombre vacío"]
+  def validar_nombre(lista_errores, nombre) do
+    if nombre != "", do: lista_errores, else: lista_errores ++ ["nombre no valido"]
   end
 end
 
 defmodule Main do
   def main do
-    # Datos de ejemplo
-    u1 = Usuario.crear("ana@example.com", 25, "Ana")
-    u2 = Usuario.crear("pedroexample.com", 30, "Pedro")      # correo inválido
-    u3 = Usuario.crear("luz@example.com", -4, "Luz")         # edad inválida
-    u4 = Usuario.crear("carlos@example.com", 40, "")         # nombre vacío
-    u5 = Usuario.crear("sofia@example.com", 22, "Sofía")
+    u1 = User.crear("ana@example.com", 25, "Ana")
+    u2 = User.crear("pedroexample.com", 30, "Pedro")
+    u3 = User.crear("luz@example.com", -4, "Luz")
+    u4 = User.crear("carlos@example.com", 40, "")
+    u5 = User.crear("sofia@example.com", 22, "Sofia")
 
-    lista = [u1, u2, u3, u4, u5]
+    usuarios = [u1, u2, u3, u4, u5]
+    t_sec = Benchmark.determinar_tiempo_ejecucion({Main, :secuencial, [usuarios]})
+    t_con = Benchmark.determinar_tiempo_ejecucion({Main, :concurrente, [usuarios]})
+    IO.puts("\nSecuencial: #{t_sec} microsegundos.")
+    IO.puts("Concurrente: #{t_con} microsegundos.")
 
-    # Medición de tiempos
-    tiempo_sec = Benchmark.determinar_tiempo_ejecucion({Main, :validar_usuarios_secuencial, [lista]})
-    tiempo_conc = Benchmark.determinar_tiempo_ejecucion({Main, :validar_usuarios_concurrente, [lista]})
+    sp_up = Benchmark.calcular_speedup(t_con, t_sec) |> Float.round(2)
 
-    IO.puts("\nSecuencial: #{tiempo_sec} microsegundos")
-    IO.puts("Concurrente: #{tiempo_conc} microsegundos")
+    IO.puts("Speed up es #{sp_up}x mas rapido.")
 
-    speedup = Benchmark.calcular_speedup(tiempo_conc, tiempo_sec) |> Float.round(2)
-    IO.puts("Speedup: #{speedup}x más rápido\n")
   end
 
-  # Versión secuencial
-  def validar_usuarios_secuencial(lista) do
-    Enum.each(lista, fn u ->
-      {email, resultado} = Validador.validar(u)
-      IO.inspect({email, resultado})
+  def secuencial(lista) do
+    lista
+    |> Enum.each(fn u ->
+      Validador.validar(u)
     end)
   end
 
-  # Versión concurrente
-  def validar_usuarios_concurrente(lista) do
+  def concurrente(lista) do
     lista
     |> Enum.map(fn u ->
       Task.async(fn ->
-        {email, resultado} = Validador.validar(u)
-        IO.inspect({email, resultado})
+        Validador.validar(u)
       end)
     end)
-    |> Enum.each(&Task.await(&1, 100_000))
+    |> Enum.map(&Task.await(&1, 10000))
   end
+
 end
 
 Main.main()
