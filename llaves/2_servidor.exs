@@ -14,16 +14,16 @@ defmodule ServidorIVA do
   # Bucle principal del servidor
   defp loop do
     receive do
-      {cliente, {:calcular_sencuencial, lista}} ->
-        resultado = calcular_iva_sencuencial(lista)
-        tiempo = Benchmark.determinar_tiempo_ejecucion({ServidorIVA, :calcular_iva_sencuencial, [lista]})
+      {cliente, {:sencuencial, lista}} ->
+        resultado = encuencial(lista)
+        tiempo = Benchmark.determinar_tiempo_ejecucion({ServidorIVA, :sencuencial, [lista]})
 
         send(cliente, {:resultado, resultado, tiempo})
         loop()
 
-      {cliente, {:calcular_concurrente, lista}} ->
-        resultado = calcular_iva_concurrente(lista)
-        tiempo = Benchmark.determinar_tiempo_ejecucion({ServidorIVA, :calcular_iva_concurrente, [lista]})
+      {cliente, {:concurrente, lista}} ->
+        resultado = concurrente(lista)
+        tiempo = Benchmark.determinar_tiempo_ejecucion({ServidorIVA, :concurrente, [lista]})
 
         send(cliente, {:resultado, resultado, tiempo})
         loop()
@@ -33,21 +33,31 @@ defmodule ServidorIVA do
   # -------------------------
   #  CÁLCULO IVA SECUENCIAL
   # -------------------------
-  def calcular_iva_sencuencial(lista) do
-    Enum.map(lista, fn p ->
-      {p.nombre, p.precio_sin_iva * (1 + p.iva)}
+  def sencuencial(lista) do
+    lista
+    |> Enum.map( fn p ->
+      preparar(o)
     end)
   end
 
   # -------------------------
   #  CÁLCULO IVA CONCURRENTE
   # -------------------------
-  def calcular_iva_concurrente(lista) do
+  def concurrente(lista) do
     lista
-    |> Enum.map(fn p ->
-      Task.async(fn -> {p.nombre, p.precio_sin_iva * (1 + p.iva)} end)
+    |> Enum.map(fn o ->
+      Task.async(fn ->
+        preparar(o)
+      end)
     end)
-    |> Enum.map(&Task.await(&1, 100_000))
+    |> Enum.map(&Task.await(&1, 10000))
+
+  end
+
+  def preparar(o) do
+    precio_con_iva = o.precio * 1 + o.iva
+    precio_final = precio_con_iva * p.stock
+    {nombre, precio_final}
   end
 end
 

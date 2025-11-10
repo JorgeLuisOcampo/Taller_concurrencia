@@ -1,3 +1,10 @@
+defmodule Producto do
+  defstruct nombre: "", stock: 0, precio_sin_iva: 0, iva: 0.0
+  def crear(n,s,p,i), do: %Producto{nombre: n, stock: s, precio_sin_iva: p, iva: i}
+
+end
+
+
 defmodule ClienteIVA do
   @nodo_cliente :"cliente@IP_CLIENTE"
   @nodo_servidor :"servidor@IP_SERVIDOR"
@@ -14,11 +21,11 @@ defmodule ClienteIVA do
 
       # ✅ cálculo secuencial
       IO.puts("\n----- Cálculo Secuencial -----")
-      IO.inspect(solicitar_sencuencial(productos))
+      IO.inspect(sencuencial(productos))
 
       # ✅ cálculo concurrente
       IO.puts("\n----- Cálculo Concurrente -----")
-      IO.inspect(solicitar_concurrente(productos))
+      IO.inspect(concurrente(productos))
 
     else
       IO.puts("No se pudo conectar")
@@ -38,8 +45,8 @@ defmodule ClienteIVA do
   # --------------------------
   # SOLICITUD SECUENCIAL
   # --------------------------
-  defp solicitar_sencuencial(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {:calcular_sencuencial, lista}})
+  defp sencuencial(lista) do
+    send({@servicio, @nodo_servidor}, {self(), {:sencuencial, lista}})
 
     receive do
       {:resultado, datos, tiempo} ->
@@ -52,8 +59,8 @@ defmodule ClienteIVA do
   # --------------------------
   # SOLICITUD CONCURRENTE
   # --------------------------
-  defp solicitar_concurrente(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {:calcular_concurrente, lista}})
+  defp concurrente(lista) do
+    send({@servicio, @nodo_servidor}, {self(), {:concurrente, lista}})
 
     receive do
       {:resultado, datos, tiempo} ->
