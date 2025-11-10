@@ -47,7 +47,7 @@ defmodule ClienteIVA do
       {:resultado, datos, tiempo} ->
         %{resultado: datos, tiempo: tiempo}
     after
-      5000 -> {:error, :timeout}
+      100000 -> {:error, :timeout}
     end
   end
 
@@ -58,7 +58,7 @@ defmodule ClienteIVA do
       {:resultado, datos, tiempo} ->
         %{resultado: datos, tiempo: tiempo}
     after
-      5000 -> {:error, :timeout}
+      100000 -> {:error, :timeout}
     end
   end
 end
