@@ -1,66 +1,70 @@
+defmodule Tarea do
+  defstruct nombre: ""
+  def crear(n), do: %Tarea{nombre: n}
+end
 
-defmodule ClienteEj8 do
+defmodule Cliente do
   @nodo_cliente :"cliente@192.168.1.2"
   @nodo_servidor :"servidor@192.168.1.25"
-  @servicio :servicio_ej8
+  @servicio :servicio_tareas
 
   def main() do
     Node.start(@nodo_cliente)
     Node.set_cookie(:my_cookie)
 
     if Node.connect(@nodo_servidor) do
-      IO.puts("Cliente conectado al servidor")
+      IO.puts("Cliente conectado al servidor\n")
 
-      datos = crear_datos()
+      tareas = crear_tareas()
 
-      IO.puts("\n----- Cálculo Secuencial -----")
-      res_sec = secuencial(datos)
-      IO.inspect(res_sec)
+      # ---- SEC ----
+      IO.puts("----- Ejecución Secuencial -----")
+      sec = secuencial(tareas)
+      IO.puts("Tiempo secuencial: #{sec.tiempo} μs")
 
-      IO.puts("\n----- Cálculo Concurrente -----")
-      res_con = concurrente(datos)
-      IO.inspect(res_con)
+      # ---- CONC ----
+      IO.puts("\n----- Ejecución Concurrente -----")
+      conc = concurrente(tareas)
+      IO.puts("Tiempo concurrente: #{conc.tiempo} μs")
 
-      if res_sec[:tiempo] != 0 and res_con[:tiempo] != 0 do
-        speedup = Benchmark.calcular_speedup(res_con[:tiempo], res_sec[:tiempo]) |> Float.round(2)
-        IO.puts("\nSpeed up es #{speedup}x mas rapido.")
-      else
-        IO.puts("\nNo se pudo calcular el speedup (tiempos inválidos).")
-      end
+      # ---- SPEEDUP ----
+      sp = Benchmark.calcular_speedup(conc.tiempo, sec.tiempo) |> Float.round(2)
+      IO.puts("\nSpeed Up: #{sp}x más rápido\n")
+
     else
-      IO.puts("No se pudo conectar con el servidor")
+      IO.puts("No se pudo conectar al servidor.")
     end
   end
 
+  defp crear_tareas do
+    [
+      Tarea.crear(:reindex),
+      Tarea.crear(:purge_cache),
+      Tarea.crear(:build_sitemap),
+      Tarea.crear(:backup),
+      Tarea.crear(:analyze_logs)
+    ]
+  end
+
   defp secuencial(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {{:secuencial, :ok}, lista}})
+    send({@servicio, @nodo_servidor}, {self(), {:secuencial, lista}})
+
     receive do
-      {{:resultado, :ok}, datos, tiempo} -> %{resultado: datos, tiempo: tiempo}
+      {:resultado, tiempo} -> %{tiempo: tiempo}
     after
-      100_000 -> %{resultado: [], tiempo: 0}
+      100_000 -> %{tiempo: 0}
     end
   end
 
   defp concurrente(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {{:concurrente, :ok}, lista}})
+    send({@servicio, @nodo_servidor}, {self(), {:concurrente, lista}})
+
     receive do
-      {{:resultado, :ok}, datos, tiempo} -> %{resultado: datos, tiempo: tiempo}
+      {:resultado, tiempo} -> %{tiempo: tiempo}
     after
-      100_000 -> %{resultado: [], tiempo: 0}
+      100_000 -> %{tiempo: 0}
     end
   end
-
-  # --- datos del ejercicio ---
-
-  defmodule Tarea do
-    defstruct nombre: ""
-    def crear(n), do: %Tarea{nombre: n}
-  end
-
-  defp crear_datos do
-    [Tarea.crear(:reindex), Tarea.crear(:purge_cache), Tarea.crear(:build_sitemap), Tarea.crear(:backup), Tarea.crear(:analyze_logs)]
-  end
-
 end
 
-ClienteEj8.main()
+Cliente.main()

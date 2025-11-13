@@ -25,13 +25,6 @@ defmodule ClienteIVA do
       resultado_con = concurrente(productos)
       IO.inspect(resultado_con)
 
-      # Calcular SpeedUp
-      if resultado_sec[:tiempo] != 0 and resultado_con[:tiempo] != 0 do
-        speedup = Benchmark.calcular_speedup(resultado_con[:tiempo], resultado_sec[:tiempo])
-        IO.puts("\nSpeed up es #{Float.round(speedup, 2)}x más rápido.")
-      else
-        IO.puts("\nNo se pudo calcular el speedup (tiempos inválidos).")
-      end
     else
       IO.puts("No se pudo conectar con el servidor.")
     end

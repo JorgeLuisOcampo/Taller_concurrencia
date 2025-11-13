@@ -1,71 +1,95 @@
+defmodule Sucursal do
+  defstruct id: "", ventas_diarias: []
+  def crear(id, ventas), do: %Sucursal{id: id, ventas_diarias: ventas}
+end
 
-defmodule ClienteEj5 do
+defmodule Cliente do
   @nodo_cliente :"cliente@192.168.1.2"
   @nodo_servidor :"servidor@192.168.1.25"
-  @servicio :servicio_ej5
+  @servicio :servicio_sucursal
 
   def main() do
     Node.start(@nodo_cliente)
     Node.set_cookie(:my_cookie)
 
     if Node.connect(@nodo_servidor) do
-      IO.puts("Cliente conectado al servidor")
+      IO.puts("Cliente conectado al servidor\n")
 
-      datos = crear_datos()
+      sucursales = crear_sucursales()
 
-      IO.puts("\n----- Cálculo Secuencial -----")
-      res_sec = secuencial(datos)
-      IO.inspect(res_sec)
+      IO.puts("----- Procesamiento Secuencial -----")
+      sec = secuencial(sucursales)
+      IO.puts("Tiempo secuencial: #{sec.tiempo} μs")
 
-      IO.puts("\n----- Cálculo Concurrente -----")
-      res_con = concurrente(datos)
-      IO.inspect(res_con)
+      IO.puts("\n----- Procesamiento Concurrente -----")
+      conc = concurrente(sucursales)
+      IO.puts("Tiempo concurrente: #{conc.tiempo} μs")
 
-      if res_sec[:tiempo] != 0 and res_con[:tiempo] != 0 do
-        speedup = Benchmark.calcular_speedup(res_con[:tiempo], res_sec[:tiempo]) |> Float.round(2)
-        IO.puts("\nSpeed up es #{speedup}x mas rapido.")
-      else
-        IO.puts("\nNo se pudo calcular el speedup (tiempos inválidos).")
-      end
+      sp = Benchmark.calcular_speedup(conc.tiempo, sec.tiempo) |> Float.round(2)
+      IO.puts("\nSpeed Up: #{sp}x más rápido\n")
+
     else
-      IO.puts("No se pudo conectar con el servidor")
+      IO.puts("No se pudo conectar al servidor.")
     end
   end
 
+  defp crear_sucursales do
+    [
+      Sucursal.crear("A1", [
+        {"pizza", 100_000},
+        {"hamburguesa", 80_000},
+        {"perro caliente", 70_000},
+        {"papas fritas", 50_000},
+        {"gaseosa", 40_000}
+      ]),
+      Sucursal.crear("B2", [
+        {"ensalada", 60_000},
+        {"sandwich", 75_000},
+        {"jugos naturales", 45_000},
+        {"pollo asado", 90_000},
+        {"arepa con queso", 30_000}
+      ]),
+      Sucursal.crear("C3", [
+        {"sushi", 110_000},
+        {"ramen", 95_000},
+        {"té verde", 35_000},
+        {"tempura", 80_000},
+        {"gyoza", 60_000}
+      ]),
+      Sucursal.crear("D4", [
+        {"bandeja paisa", 120_000},
+        {"frijoles", 70_000},
+        {"chicharrón", 90_000},
+        {"arepa antioqueña", 40_000},
+        {"limonada", 50_000}
+      ]),
+      Sucursal.crear("E5", [
+        {"taco", 85_000},
+        {"burrito", 95_000},
+        {"nachos", 60_000},
+        {"guacamole", 35_000},
+        {"agua fresca", 40_000}
+      ])
+    ]
+  end
+
   defp secuencial(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {{:secuencial, :ok}, lista}})
+    send({@servicio, @nodo_servidor}, {self(), {:secuencial, lista}})
     receive do
-      {{:resultado, :ok}, datos, tiempo} -> %{resultado: datos, tiempo: tiempo}
+      {:resultado, tiempo} -> %{tiempo: tiempo}
     after
-      100_000 -> %{resultado: [], tiempo: 0}
+      100_000 -> %{tiempo: 0}
     end
   end
 
   defp concurrente(lista) do
-    send({@servicio, @nodo_servidor}, {self(), {{:concurrente, :ok}, lista}})
+    send({@servicio, @nodo_servidor}, {self(), {:concurrente, lista}})
     receive do
-      {{:resultado, :ok}, datos, tiempo} -> %{resultado: datos, tiempo: tiempo}
+      {:resultado, tiempo} -> %{tiempo: tiempo}
     after
-      100_000 -> %{resultado: [], tiempo: 0}
+      100_000 -> %{tiempo: 0}
     end
   end
-
-  # --- datos del ejercicio ---
-
-  defmodule Sucursal do
-    defstruct id: "", ventas_diarias: []
-    def crear(id, ventas_diarias), do: %Sucursal{id: id, ventas_diarias: ventas_diarias}
-  end
-
-  defp crear_datos do
-    s1 = Sucursal.crear("A1", [{"pizza", 100_000},{"hamburguesa", 80_000},{"perro caliente", 70_000},{"papas fritas", 50_000},{"gaseosa", 40_000}])
-    s2 = Sucursal.crear("B2", [{"ensalada", 60_000},{"sandwich", 75_000},{"jugos naturales", 45_000},{"pollo asado", 90_000},{"arepa con queso", 30_000}])
-    s3 = Sucursal.crear("C3", [{"sushi", 110_000},{"ramen", 95_000},{"té verde", 35_000},{"tempura", 80_000},{"gyoza", 60_000}])
-    s4 = Sucursal.crear("D4", [{"bandeja paisa", 120_000},{"frijoles", 70_000},{"chicharrón", 90_000},{"arepa antioqueña", 40_000},{"limonada", 50_000}])
-    s5 = Sucursal.crear("E5", [{"taco", 85_000},{"burrito", 95_000},{"nachos", 60_000},{"guacamole", 35_000},{"agua fresca", 40_000}])
-    [s1,s2,s3,s4,s5]
-  end
-
 end
 
-ClienteEj5.main()
+Cliente.main()
